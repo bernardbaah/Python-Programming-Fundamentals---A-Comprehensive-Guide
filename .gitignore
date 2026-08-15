@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pythonlibs/
+.venv/
+
+# PDF and media assets (add your own copy locally)
+*.pdf
+*.docx
+*.JPG
+*.jpg
+*.png
+attached_assets/
+
+# Replit
+.replit
+.cache/
+.upm/
+replit.nix
