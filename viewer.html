@@ -3,19 +3,338 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python Fundamentals</title>
+  <title>Python Programming Fundamentals — Filly Coder</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; background: #1e1e2e; }
-    iframe {
-      display: block;
-      width: 100%;
-      height: 100vh;
-      border: none;
+    :root {
+      --navy:      #0a1628;
+      --navy-mid:  #0f2040;
+      --navy-hi:   #162d52;
+      --gold:      #c9a84c;
+      --gold-dim:  rgba(201,168,76,0.18);
+      --gold-line: rgba(201,168,76,0.18);
+      --text:      #dde4f0;
+      --text-dim:  #7a8eaa;
+      --sidebar:   280px;
+      --topbar:    52px;
+      --bar:       3px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; background: #1c2233;
+      color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* ── Progress bar ── */
+    #prog-track { position: fixed; top: 0; left: 0; right: 0; height: var(--bar);
+      background: rgba(255,255,255,0.08); z-index: 300; }
+    #prog-fill  { height: 100%; width: 0%; background: var(--gold);
+      transition: width .35s ease; border-radius: 0 2px 2px 0; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar);
+      background: var(--navy); border-right: 1px solid var(--gold-line);
+      display: flex; flex-direction: column; z-index: 200; overflow: hidden;
+    }
+    #sb-head {
+      padding: 20px 18px 14px; flex-shrink: 0;
+      border-bottom: 1px solid var(--gold-line);
+    }
+    #sb-brand { font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+    #sb-title  { font-size: 13.5px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    #sb-author { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    #sb-search {
+      margin: 10px 14px; flex-shrink: 0;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--navy-mid); border: 1px solid rgba(201,168,76,.22);
+      border-radius: 7px; padding: 6px 12px;
+    }
+    #sb-search input { background: none; border: none; outline: none;
+      color: var(--text); font-size: 12px; flex: 1; }
+    #sb-search input::placeholder { color: var(--text-dim); }
+    #sb-search .ico { color: var(--text-dim); font-size: 13px; }
+
+    #nav { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
+    #nav::-webkit-scrollbar { width: 4px; }
+    #nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,.18); border-radius: 2px; }
+
+    .nav-label {
+      padding: 10px 16px 3px; font-size: 9px; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(201,168,76,.5); font-weight: 700;
+    }
+    .nav-item {
+      display: flex; align-items: baseline; gap: 9px;
+      padding: 7px 16px 7px 14px; cursor: pointer;
+      border-left: 3px solid transparent;
+      font-size: 12.5px; color: var(--text-dim);
+      line-height: 1.35; transition: all .15s; text-decoration: none;
+    }
+    .nav-item:hover  { color: var(--text); background: rgba(201,168,76,.07); }
+    .nav-item.active { color: var(--gold); border-left-color: var(--gold);
+      background: rgba(201,168,76,.1); }
+    .nav-item .num   { font-size: 10px; color: var(--gold); opacity: .65;
+      white-space: nowrap; flex-shrink: 0; }
+
+    #sb-foot { padding: 10px 16px; border-top: 1px solid var(--gold-line);
+      font-size: 10px; color: rgba(122,142,170,.55); text-align: center; flex-shrink: 0; }
+
+    /* ── Top bar ── */
+    #topbar {
+      position: fixed; top: var(--bar); left: var(--sidebar); right: 0;
+      height: var(--topbar); background: var(--navy);
+      border-bottom: 1px solid var(--gold-line);
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 18px; z-index: 150;
+    }
+    .tb-btn {
+      background: var(--navy-hi); border: 1px solid rgba(201,168,76,.3);
+      color: var(--gold); padding: 5px 13px; border-radius: 6px;
+      cursor: pointer; font-size: 12.5px; transition: all .18s; white-space: nowrap;
+    }
+    .tb-btn:hover:not(:disabled) { background: var(--gold); color: var(--navy); }
+    .tb-btn:disabled { opacity: .3; cursor: not-allowed; }
+    .tb-sep { width: 1px; height: 22px; background: var(--gold-line); flex-shrink: 0; }
+    #page-box {
+      display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center;
+      font-size: 12.5px; color: var(--text-dim);
+    }
+    #page-input {
+      width: 52px; background: var(--navy-hi); border: 1px solid rgba(201,168,76,.3);
+      color: var(--gold); padding: 4px 6px; border-radius: 5px; font-size: 12.5px;
+      text-align: center;
+    }
+    #page-input:focus { outline: 1px solid var(--gold); }
+    #zoom-row { display: flex; align-items: center; gap: 6px; }
+    #zoom-val  { font-size: 12px; color: var(--text-dim); min-width: 44px; text-align: center; }
+
+    /* ── Main ── */
+    #main {
+      position: fixed;
+      top: calc(var(--bar) + var(--topbar));
+      left: var(--sidebar); right: 0; bottom: 0;
+      overflow-y: auto; background: #232838;
+      display: flex; justify-content: center;
+      padding: 28px 24px 40px;
+    }
+    #main::-webkit-scrollbar { width: 7px; }
+    #main::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+    #canvas-wrap {
+      box-shadow: 0 12px 48px rgba(0,0,0,.65);
+      background: #fff; display: inline-block; line-height: 0;
+    }
+    canvas { display: block; }
+    #spinner {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      color: var(--gold); font-size: 13px; letter-spacing: 1px;
     }
   </style>
 </head>
 <body>
-  <iframe src="/pdf" title="Python Fundamentals"></iframe>
+
+<!-- Progress bar -->
+<div id="prog-track"><div id="prog-fill"></div></div>
+
+<!-- ── Sidebar ── -->
+<nav id="sidebar">
+  <div id="sb-head">
+    <div id="sb-brand">Filly Coder · AI Future Series</div>
+    <div id="sb-title">Python Programming<br>Fundamentals</div>
+    <div id="sb-author">Bernard Baah</div>
+  </div>
+
+  <div id="sb-search">
+    <span class="ico">⌕</span>
+    <input id="search-in" type="text" placeholder="Search chapters…" autocomplete="off" />
+  </div>
+
+  <div id="nav">
+    <div class="nav-label">Front Matter</div>
+    <div class="nav-item" data-page="1"><span class="num">Cover</span>Cover &amp; Title</div>
+    <div class="nav-item" data-page="2"><span class="num">TOC</span>Table of Contents</div>
+    <div class="nav-item" data-page="10"><span class="num">Intro</span>Preface &amp; About the Author</div>
+
+    <div class="nav-label">Chapters</div>
+    <div class="nav-item" data-page="12"><span class="num">Ch 1</span>Introduction to Python</div>
+    <div class="nav-item" data-page="16"><span class="num">Ch 2</span>Getting Started</div>
+    <div class="nav-item" data-page="20"><span class="num">Ch 3</span>Variables and Data Types</div>
+    <div class="nav-item" data-page="30"><span class="num">Ch 4</span>Control Structures</div>
+    <div class="nav-item" data-page="42"><span class="num">Ch 5</span>Functions</div>
+    <div class="nav-item" data-page="54"><span class="num">Ch 6</span>Modules and Libraries</div>
+    <div class="nav-item" data-page="64"><span class="num">Ch 7</span>File Handling</div>
+    <div class="nav-item" data-page="72"><span class="num">Ch 8</span>Exception Handling</div>
+    <div class="nav-item" data-page="82"><span class="num">Ch 9</span>Data Structures</div>
+    <div class="nav-item" data-page="92"><span class="num">Ch 10</span>OOP: Basics</div>
+    <div class="nav-item" data-page="106"><span class="num">Ch 11</span>OOP: Advanced Concepts</div>
+    <div class="nav-item" data-page="118"><span class="num">Ch 12</span>Error Handling &amp; Debugging</div>
+    <div class="nav-item" data-page="130"><span class="num">Ch 13</span>Files &amp; Directories (Part 2)</div>
+    <div class="nav-item" data-page="142"><span class="num">Ch 14</span>Introduction to Testing</div>
+    <div class="nav-item" data-page="156"><span class="num">Ch 15</span>Intro to Modules &amp; Packages</div>
+    <div class="nav-item" data-page="170"><span class="num">Ch 16</span>Advanced Modules &amp; Packages</div>
+    <div class="nav-item" data-page="184"><span class="num">Ch 17</span>Working with External APIs</div>
+    <div class="nav-item" data-page="198"><span class="num">Ch 18</span>Web Development with Flask</div>
+    <div class="nav-item" data-page="214"><span class="num">Ch 19</span>Intermediate Flask Development</div>
+    <div class="nav-item" data-page="230"><span class="num">Ch 20</span>Data Visualization: Matplotlib</div>
+    <div class="nav-item" data-page="244"><span class="num">Ch 21</span>Data Visualization: Seaborn</div>
+    <div class="nav-item" data-page="258"><span class="num">Ch 22</span>Machine Learning with scikit-learn</div>
+    <div class="nav-item" data-page="270"><span class="num">Ch 23</span>Web Scraping with Python</div>
+    <div class="nav-item" data-page="302"><span class="num">Ch 24</span>Python Automation</div>
+    <div class="nav-item" data-page="312"><span class="num">Ch 25</span>Conclusion and Next Steps</div>
+  </div>
+
+  <div id="sb-foot">321 pages &nbsp;·&nbsp; Python Programming Fundamentals</div>
+</nav>
+
+<!-- ── Top bar ── -->
+<header id="topbar">
+  <button class="tb-btn" id="btn-prev">&#8592; Prev</button>
+  <button class="tb-btn" id="btn-next">Next &#8594;</button>
+  <div class="tb-sep"></div>
+  <div id="page-box">
+    Page&nbsp;<input id="page-input" type="number" min="1" value="1" />&nbsp;of&nbsp;<span id="total-pg">—</span>
+  </div>
+  <div class="tb-sep"></div>
+  <div id="zoom-row">
+    <button class="tb-btn" id="btn-zout">−</button>
+    <span id="zoom-val">100%</span>
+    <button class="tb-btn" id="btn-zin">+</button>
+    <button class="tb-btn" id="btn-fit">Fit</button>
+  </div>
+</header>
+
+<!-- ── PDF canvas ── -->
+<div id="main">
+  <div id="spinner">Loading book…</div>
+  <div id="canvas-wrap" style="display:none"><canvas id="pdf-canvas"></canvas></div>
+</div>
+
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const canvas  = document.getElementById('pdf-canvas');
+  const ctx     = canvas.getContext('2d');
+  const main    = document.getElementById('main');
+  const navItems = document.querySelectorAll('.nav-item[data-page]');
+
+  let pdfDoc     = null;
+  let curPage    = 1;
+  let totalPages = 0;
+  let baseScale  = 1.5;   // computed to fit width
+  let zoom       = 1.0;   // user zoom multiplier
+  let rendering  = false;
+  let pending    = null;
+
+  /* ── Load PDF ── */
+  pdfjsLib.getDocument('/pdf').promise.then(doc => {
+    pdfDoc = doc;
+    totalPages = doc.numPages;
+    document.getElementById('total-pg').textContent = totalPages;
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('canvas-wrap').style.display = 'inline-block';
+    computeBaseScale().then(() => renderPage(1));
+  }).catch(err => {
+    document.getElementById('spinner').textContent = 'Error loading PDF: ' + err.message;
+  });
+
+  async function computeBaseScale() {
+    const page = await pdfDoc.getPage(1);
+    const vp   = page.getViewport({ scale: 1 });
+    const avail = main.clientWidth - 48;
+    baseScale = Math.max(0.8, Math.min(2.5, avail / vp.width));
+    updateZoomLabel();
+  }
+
+  function effectiveScale() { return baseScale * zoom; }
+
+  function updateZoomLabel() {
+    document.getElementById('zoom-val').textContent = Math.round(zoom * 100) + '%';
+  }
+
+  /* ── Render ── */
+  function renderPage(num) {
+    if (!pdfDoc) return;
+    if (rendering) { pending = num; return; }
+    rendering = true;
+    curPage = Math.max(1, Math.min(totalPages, num));
+
+    document.getElementById('page-input').value = curPage;
+    document.getElementById('btn-prev').disabled = curPage <= 1;
+    document.getElementById('btn-next').disabled = curPage >= totalPages;
+    document.getElementById('prog-fill').style.width =
+      (totalPages > 1 ? (curPage - 1) / (totalPages - 1) * 100 : 0) + '%';
+    highlightNav(curPage);
+
+    pdfDoc.getPage(curPage).then(page => {
+      const vp = page.getViewport({ scale: effectiveScale() });
+      canvas.width  = vp.width;
+      canvas.height = vp.height;
+      return page.render({ canvasContext: ctx, viewport: vp }).promise;
+    }).then(() => {
+      rendering = false;
+      main.scrollTo(0, 0);
+      if (pending !== null) { const p = pending; pending = null; renderPage(p); }
+    });
+  }
+
+  function goTo(p) { p = Math.max(1, Math.min(totalPages, p)); if (p !== curPage) renderPage(p); }
+
+  /* ── Sidebar nav highlight ── */
+  function highlightNav(page) {
+    let active = null;
+    navItems.forEach(el => {
+      el.classList.remove('active');
+      if (parseInt(el.dataset.page) <= page) active = el;
+    });
+    if (active) {
+      active.classList.add('active');
+      active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  /* ── Events ── */
+  navItems.forEach(el =>
+    el.addEventListener('click', () => goTo(parseInt(el.dataset.page)))
+  );
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(curPage - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(curPage + 1));
+
+  document.getElementById('page-input').addEventListener('change', e =>
+    goTo(parseInt(e.target.value) || curPage)
+  );
+
+  document.getElementById('btn-zin').addEventListener('click', () => {
+    zoom = Math.min(zoom + 0.25, 3); updateZoomLabel(); renderPage(curPage);
+  });
+  document.getElementById('btn-zout').addEventListener('click', () => {
+    zoom = Math.max(zoom - 0.25, 0.25); updateZoomLabel(); renderPage(curPage);
+  });
+  document.getElementById('btn-fit').addEventListener('click', () => {
+    zoom = 1; updateZoomLabel(); renderPage(curPage);
+  });
+
+  /* Keyboard nav */
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown')
+      { e.preventDefault(); goTo(curPage + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')
+      { e.preventDefault(); goTo(curPage - 1); }
+  });
+
+  /* Search filter */
+  document.getElementById('search-in').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    navItems.forEach(el => {
+      el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
+  /* Recompute scale on resize */
+  window.addEventListener('resize', () => {
+    computeBaseScale().then(() => renderPage(curPage));
+  });
+</script>
 </body>
 </html>
