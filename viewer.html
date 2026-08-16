@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python Programming Fundamentals — Filly Coder</title>
+  <title>Python Programming Fundamentals — Bernard Baah</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     :root {
@@ -34,6 +34,7 @@
       position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar);
       background: var(--navy); border-right: 1px solid var(--gold-line);
       display: flex; flex-direction: column; z-index: 200; overflow: hidden;
+      transition: transform .25s ease;
     }
     #sb-head {
       padding: 20px 18px 14px; flex-shrink: 0;
@@ -79,6 +80,23 @@
     #sb-foot { padding: 10px 16px; border-top: 1px solid var(--gold-line);
       font-size: 10px; color: rgba(122,142,170,.55); text-align: center; flex-shrink: 0; }
 
+    /* ── Sidebar overlay (mobile) ── */
+    #sb-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      z-index: 190;
+    }
+
+    /* ── Hamburger button ── */
+    #btn-menu {
+      display: none;
+      background: var(--navy-hi); border: 1px solid rgba(201,168,76,.3);
+      color: var(--gold); width: 36px; height: 36px; border-radius: 6px;
+      cursor: pointer; font-size: 18px; flex-shrink: 0;
+      align-items: center; justify-content: center; line-height: 1;
+      transition: all .18s;
+    }
+    #btn-menu:hover { background: var(--gold); color: var(--navy); }
+
     /* ── Top bar ── */
     #topbar {
       position: fixed; top: var(--bar); left: var(--sidebar); right: 0;
@@ -122,11 +140,47 @@
     #canvas-wrap {
       box-shadow: 0 12px 48px rgba(0,0,0,.65);
       background: #fff; display: inline-block; line-height: 0;
+      max-width: 100%;
     }
-    canvas { display: block; }
+    canvas { display: block; max-width: 100%; height: auto; }
     #spinner {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
       color: var(--gold); font-size: 13px; letter-spacing: 1px;
+    }
+
+    /* ── Mobile / Tablet responsive ── */
+    @media (max-width: 700px) {
+      :root { --topbar: 48px; }
+
+      /* Sidebar slides off-canvas by default */
+      #sidebar {
+        transform: translateX(-100%);
+        width: min(var(--sidebar), 85vw);
+      }
+      #sidebar.open { transform: translateX(0); }
+      #sb-overlay.open { display: block; }
+
+      /* Top bar spans full width (no sidebar offset) */
+      #topbar { left: 0; padding: 0 10px; gap: 6px; }
+
+      /* Show hamburger */
+      #btn-menu { display: flex; }
+
+      /* Main area spans full width */
+      #main { left: 0; padding: 12px 8px 24px; }
+
+      /* Condense zoom controls — hide label on very narrow screens */
+      #zoom-val { min-width: 36px; font-size: 11px; }
+
+      /* Hide text on prev/next, show arrows only */
+      #btn-prev { font-size: 0; padding: 5px 10px; }
+      #btn-prev::before { content: '←'; font-size: 14px; }
+      #btn-next { font-size: 0; padding: 5px 10px; }
+      #btn-next::after  { content: '→'; font-size: 14px; }
+
+      /* Tighter page box */
+      #page-box { gap: 4px; font-size: 11.5px; }
+      #page-input { width: 44px; font-size: 11.5px; }
     }
   </style>
 </head>
@@ -138,7 +192,7 @@
 <!-- ── Sidebar ── -->
 <nav id="sidebar">
   <div id="sb-head">
-    <div id="sb-brand">Filly Coder · AI Future Series</div>
+    <div id="sb-brand">Python Programming Fundamentals</div>
     <div id="sb-title">Python Programming<br>Fundamentals</div>
     <div id="sb-author">Bernard Baah</div>
   </div>
@@ -152,38 +206,37 @@
     <div class="nav-label">Front Matter</div>
     <div class="nav-item" data-page="1"><span class="num">Cover</span>Cover &amp; Title</div>
     <div class="nav-item" data-page="2"><span class="num">TOC</span>Table of Contents</div>
-    <div class="nav-item" data-page="10"><span class="num">Intro</span>Preface &amp; About the Author</div>
 
     <div class="nav-label">Chapters</div>
-    <div class="nav-item" data-page="12"><span class="num">Ch 1</span>Introduction to Python</div>
-    <div class="nav-item" data-page="16"><span class="num">Ch 2</span>Getting Started</div>
-    <div class="nav-item" data-page="20"><span class="num">Ch 3</span>Variables and Data Types</div>
-    <div class="nav-item" data-page="30"><span class="num">Ch 4</span>Control Structures</div>
-    <div class="nav-item" data-page="42"><span class="num">Ch 5</span>Functions</div>
-    <div class="nav-item" data-page="54"><span class="num">Ch 6</span>Modules and Libraries</div>
-    <div class="nav-item" data-page="64"><span class="num">Ch 7</span>File Handling</div>
-    <div class="nav-item" data-page="72"><span class="num">Ch 8</span>Exception Handling</div>
-    <div class="nav-item" data-page="82"><span class="num">Ch 9</span>Data Structures</div>
-    <div class="nav-item" data-page="92"><span class="num">Ch 10</span>OOP: Basics</div>
-    <div class="nav-item" data-page="106"><span class="num">Ch 11</span>OOP: Advanced Concepts</div>
-    <div class="nav-item" data-page="118"><span class="num">Ch 12</span>Error Handling &amp; Debugging</div>
-    <div class="nav-item" data-page="130"><span class="num">Ch 13</span>Files &amp; Directories (Part 2)</div>
-    <div class="nav-item" data-page="142"><span class="num">Ch 14</span>Introduction to Testing</div>
-    <div class="nav-item" data-page="156"><span class="num">Ch 15</span>Intro to Modules &amp; Packages</div>
-    <div class="nav-item" data-page="170"><span class="num">Ch 16</span>Advanced Modules &amp; Packages</div>
-    <div class="nav-item" data-page="184"><span class="num">Ch 17</span>Working with External APIs</div>
-    <div class="nav-item" data-page="198"><span class="num">Ch 18</span>Web Development with Flask</div>
-    <div class="nav-item" data-page="214"><span class="num">Ch 19</span>Intermediate Flask Development</div>
-    <div class="nav-item" data-page="230"><span class="num">Ch 20</span>Data Visualization: Matplotlib</div>
-    <div class="nav-item" data-page="244"><span class="num">Ch 21</span>Data Visualization: Seaborn</div>
-    <div class="nav-item" data-page="258"><span class="num">Ch 22</span>Machine Learning with scikit-learn</div>
-    <div class="nav-item" data-page="270"><span class="num">Ch 23</span>Web Scraping with Python</div>
-    <div class="nav-item" data-page="302"><span class="num">Ch 24</span>Python Automation</div>
-    <div class="nav-item" data-page="312"><span class="num">Ch 25</span>Conclusion and Next Steps</div>
+    <div class="nav-item" data-page="3"><span class="num">Ch 1</span>Introduction to Python</div>
+    <div class="nav-item" data-page="22"><span class="num">Ch 2</span>Getting Started</div>
+    <div class="nav-item" data-page="38"><span class="num">Ch 3</span>Variables and Data Types</div>
+    <div class="nav-item" data-page="54"><span class="num">Ch 4</span>Control Structures</div>
+    <div class="nav-item" data-page="73"><span class="num">Ch 5</span>Functions</div>
+    <div class="nav-item" data-page="88"><span class="num">Ch 6</span>Modules and Libraries</div>
+    <div class="nav-item" data-page="104"><span class="num">Ch 7</span>File Handling</div>
+    <div class="nav-item" data-page="122"><span class="num">Ch 8</span>Exception Handling</div>
+    <div class="nav-item" data-page="141"><span class="num">Ch 9</span>Data Structures</div>
+    <div class="nav-item" data-page="157"><span class="num">Ch 10</span>OOP: Basics</div>
+    <div class="nav-item" data-page="175"><span class="num">Ch 11</span>OOP: Advanced Concepts</div>
+    <div class="nav-item" data-page="188"><span class="num">Ch 12</span>Error Handling &amp; Debugging</div>
+    <div class="nav-item" data-page="205"><span class="num">Ch 13</span>Files &amp; Directories (Part 2)</div>
+    <div class="nav-item" data-page="218"><span class="num">Ch 14</span>Introduction to Testing</div>
+    <div class="nav-item" data-page="235"><span class="num">Ch 15</span>Intro to Modules &amp; Packages</div>
+    <div class="nav-item" data-page="248"><span class="num">Ch 16</span>Advanced Modules &amp; Packages</div>
+    <div class="nav-item" data-page="265"><span class="num">Ch 17</span>Working with External APIs</div>
+    <div class="nav-item" data-page="281"><span class="num">Ch 18</span>Web Development with Flask</div>
+    <div class="nav-item" data-page="296"><span class="num">Ch 19</span>Intermediate Flask Development</div>
+    <div class="nav-item" data-page="312"><span class="num">Ch 20</span>Data Visualization: Matplotlib</div>
+    <div class="nav-item" data-page="331"><span class="num">Ch 21</span>Data Visualization: Seaborn</div>
+    <div class="nav-item" data-page="347"><span class="num">Ch 22</span>Machine Learning with scikit-learn</div>
+    <div class="nav-item" data-page="362"><span class="num">Ch 23</span>Web Scraping with Python</div>
+    <div class="nav-item" data-page="381"><span class="num">Ch 24</span>Python Automation</div>
+    <div class="nav-item" data-page="399"><span class="num">Ch 25</span>Conclusion and Next Steps</div>
   </div>
 
   <div id="sb-foot">
-    <div style="margin-bottom:8px;font-size:10px;color:rgba(122,142,170,.55)">321 pages &nbsp;·&nbsp; Python Programming Fundamentals</div>
+    <div style="margin-bottom:8px;font-size:10px;color:rgba(122,142,170,.55)">414 pages &nbsp;·&nbsp; Python Programming Fundamentals</div>
     <div style="display:flex;gap:6px;justify-content:center">
       <a href="/download/pdf" style="display:inline-block;background:#0f2040;border:1px solid rgba(201,168,76,.35);color:#c9a84c;font-size:10px;padding:5px 10px;border-radius:5px;text-decoration:none;font-family:inherit" title="KDP-ready interior PDF">⬇ PDF</a>
       <a href="/download/docx" style="display:inline-block;background:#0f2040;border:1px solid rgba(201,168,76,.35);color:#c9a84c;font-size:10px;padding:5px 10px;border-radius:5px;text-decoration:none;font-family:inherit" title="Download Word document">⬇ DOCX</a>
@@ -191,8 +244,12 @@
   </div>
 </nav>
 
+<!-- Sidebar overlay (mobile tap-to-close) -->
+<div id="sb-overlay"></div>
+
 <!-- ── Top bar ── -->
 <header id="topbar">
+  <button id="btn-menu" aria-label="Toggle menu">&#9776;</button>
   <button class="tb-btn" id="btn-prev">&#8592; Prev</button>
   <button class="tb-btn" id="btn-next">Next &#8594;</button>
   <div class="tb-sep"></div>
@@ -227,7 +284,7 @@
   let curPage    = 1;
   let totalPages = 0;
   let baseScale  = 1.5;   // computed to fit width
-  let zoom       = 1.0;   // user zoom multiplier
+  let zoom       = parseFloat(localStorage.getItem('ppf_zoom')) || 1.0;   // user zoom multiplier
   let rendering  = false;
   let pending    = null;
 
@@ -238,7 +295,8 @@
     document.getElementById('total-pg').textContent = totalPages;
     document.getElementById('spinner').style.display = 'none';
     document.getElementById('canvas-wrap').style.display = 'inline-block';
-    computeBaseScale().then(() => renderPage(1));
+    const saved = parseInt(localStorage.getItem('ppf_last_page')) || 1;
+    computeBaseScale().then(() => renderPage(saved));
   }).catch(err => {
     document.getElementById('spinner').textContent = 'Error loading PDF: ' + err.message;
   });
@@ -263,6 +321,7 @@
     if (rendering) { pending = num; return; }
     rendering = true;
     curPage = Math.max(1, Math.min(totalPages, num));
+    localStorage.setItem('ppf_last_page', curPage);
 
     document.getElementById('page-input').value = curPage;
     document.getElementById('btn-prev').disabled = curPage <= 1;
@@ -311,13 +370,13 @@
   );
 
   document.getElementById('btn-zin').addEventListener('click', () => {
-    zoom = Math.min(zoom + 0.25, 3); updateZoomLabel(); renderPage(curPage);
+    zoom = Math.min(zoom + 0.25, 3); localStorage.setItem('ppf_zoom', zoom); updateZoomLabel(); renderPage(curPage);
   });
   document.getElementById('btn-zout').addEventListener('click', () => {
-    zoom = Math.max(zoom - 0.25, 0.25); updateZoomLabel(); renderPage(curPage);
+    zoom = Math.max(zoom - 0.25, 0.25); localStorage.setItem('ppf_zoom', zoom); updateZoomLabel(); renderPage(curPage);
   });
   document.getElementById('btn-fit').addEventListener('click', () => {
-    zoom = 1; updateZoomLabel(); renderPage(curPage);
+    zoom = 1; localStorage.setItem('ppf_zoom', zoom); updateZoomLabel(); renderPage(curPage);
   });
 
   /* Keyboard nav */
@@ -337,10 +396,75 @@
     });
   });
 
-  /* Recompute scale on resize */
+  /* Recompute scale on resize; reset zoom if viewport changed drastically */
+  let lastViewportWidth = window.innerWidth;
+  const MOBILE_BREAK = 700;  // mirrors the CSS @media breakpoint
+
   window.addEventListener('resize', () => {
+    const newWidth = window.innerWidth;
+    const widthDelta = Math.abs(newWidth - lastViewportWidth) / lastViewportWidth;
+    const crossedBreakpoint =
+      (lastViewportWidth <= MOBILE_BREAK) !== (newWidth <= MOBILE_BREAK);
+
+    // Reset zoom when the viewport shifts more than 30% or crosses the
+    // mobile/desktop breakpoint (covers phone rotation and window resize
+    // from desktop to a narrow panel).
+    if (crossedBreakpoint || widthDelta > 0.30) {
+      zoom = 1;
+      localStorage.setItem('ppf_zoom', zoom);
+      updateZoomLabel();
+    }
+
+    lastViewportWidth = newWidth;
     computeBaseScale().then(() => renderPage(curPage));
   });
+
+  /* ── Touch swipe (mobile page turn) ── */
+  let touchStartX = null;
+  let touchStartY = null;
+
+  main.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  main.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    touchStartX = null;
+    touchStartY = null;
+    // Only trigger if horizontal swipe dominates and is at least 40px
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0) goTo(curPage + 1);   // swipe left → next page
+    else        goTo(curPage - 1);   // swipe right → previous page
+  }, { passive: true });
+
+  /* ── Sidebar toggle (mobile) ── */
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sb-overlay');
+  const btnMenu   = document.getElementById('btn-menu');
+
+  function openSidebar()  {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+
+  btnMenu.addEventListener('click', () =>
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar()
+  );
+  overlay.addEventListener('click', closeSidebar);
+
+  /* Close sidebar after a nav item is tapped on mobile */
+  navItems.forEach(el =>
+    el.addEventListener('click', () => {
+      if (window.innerWidth <= 700) closeSidebar();
+    })
+  );
 </script>
 </body>
 </html>
