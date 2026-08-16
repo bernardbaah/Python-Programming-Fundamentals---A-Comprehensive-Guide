@@ -10,7 +10,7 @@ def index():
 @app.route('/pdf')
 def pdf():
     return send_file(
-        'attached_assets/Python_Fundamentals_Updated.pdf',
+        'book_data/Python_Fundamentals_Interior.pdf',
         mimetype='application/pdf'
     )
 
