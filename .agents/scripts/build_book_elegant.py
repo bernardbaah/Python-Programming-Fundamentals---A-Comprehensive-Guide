@@ -229,14 +229,26 @@ def _insert_page_number(para):
 
 
 def _add_bookmark(para_el, name, bk_id):
-    """Insert a named bookmark start/end pair spanning the whole paragraph."""
+    """
+    Insert a named bookmark start/end pair spanning the paragraph content.
+
+    OOXML requires that w:pPr always precedes paragraph content (including
+    bookmarks).  So we insert w:bookmarkStart immediately *after* w:pPr when
+    it exists, and append w:bookmarkEnd at the tail of the paragraph.
+    """
     bm_start = OxmlElement('w:bookmarkStart')
     bm_start.set(qn('w:id'), str(bk_id))
     bm_start.set(qn('w:name'), name)
     bm_end = OxmlElement('w:bookmarkEnd')
     bm_end.set(qn('w:id'), str(bk_id))
-    # Insert bookmarkStart before the first child, bookmarkEnd at the tail
-    para_el.insert(0, bm_start)
+
+    # Find w:pPr so we can insert the bookmark start right after it
+    pPr = para_el.find(qn('w:pPr'))
+    if pPr is not None:
+        pPr_index = list(para_el).index(pPr)
+        para_el.insert(pPr_index + 1, bm_start)
+    else:
+        para_el.insert(0, bm_start)
     para_el.append(bm_end)
 
 
