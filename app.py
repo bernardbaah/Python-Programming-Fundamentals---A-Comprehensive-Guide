@@ -23,6 +23,24 @@ def download_pdf():
         download_name='Python_Fundamentals_Interior.pdf'
     )
 
+ANSWER_KEY_PATH = 'book_data/Python_Fundamentals_Answer_Key.pdf'
+
+@app.route('/download/answers')
+def download_answers():
+    if not os.path.exists(ANSWER_KEY_PATH):
+        # Rebuild from the committed answer JSONs if the PDF is absent
+        import subprocess
+        subprocess.run(
+            ['python', '.agents/scripts/build_answer_key.py'],
+            check=True
+        )
+    return send_file(
+        ANSWER_KEY_PATH,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name='Python_Fundamentals_Answer_Key.pdf'
+    )
+
 @app.route('/download/docx')
 def download_docx():
     return send_file(
