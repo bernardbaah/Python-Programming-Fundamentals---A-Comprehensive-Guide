@@ -73,6 +73,30 @@ Each chapter includes:
 - **Chapter summary**
 - **Contextual images** (250+ total)
 
+## Rebuilding the Book
+
+To regenerate the PDF and DOCX interiors from the chapter JSON data:
+
+```bash
+# Build the DOCX (automatically syncs key files to GitHub on success)
+python .agents/scripts/build_book_elegant.py
+
+# Build the PDF (automatically syncs key files to GitHub on success)
+python .agents/scripts/build_pdf_elegant.py
+```
+
+After a successful build, `sync_to_github.py` runs automatically and pushes
+`app.py`, `viewer.html`, `README.md`, and the build scripts to GitHub.
+The sync requires the `BERNARD_BAAH_PAT` environment secret (a GitHub PAT with
+repo write scope). If the secret is absent the build completes normally and a
+warning is printed — no build failure occurs.
+
+To sync manually at any time:
+
+```bash
+python .agents/scripts/sync_to_github.py
+```
+
 ## About the Book
 
 A comprehensive introduction to Python programming covering syntax and semantics, data structures and algorithms, file I/O, exceptions, debugging, web development, data visualization, machine learning, and automation.
