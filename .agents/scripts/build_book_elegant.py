@@ -228,6 +228,18 @@ def _insert_page_number(para):
     para._p.append(_run(end))
 
 
+def _add_bookmark(para_el, name, bk_id):
+    """Insert a named bookmark start/end pair spanning the whole paragraph."""
+    bm_start = OxmlElement('w:bookmarkStart')
+    bm_start.set(qn('w:id'), str(bk_id))
+    bm_start.set(qn('w:name'), name)
+    bm_end = OxmlElement('w:bookmarkEnd')
+    bm_end.set(qn('w:id'), str(bk_id))
+    # Insert bookmarkStart before the first child, bookmarkEnd at the tail
+    para_el.insert(0, bm_start)
+    para_el.append(bm_end)
+
+
 def _setup_section_hf(section, chapter_title=''):
     """
     Configure header and footer for *section*.
@@ -332,6 +344,9 @@ def add_chapter_banner(doc, num, title):
     r2 = ttl.runs[0]
     r2.font.name = 'Calibri'; r2.font.size = Pt(22); r2.bold = True
     r2.font.color.rgb = _rgb(*_WHITE)
+
+    # Stamp a named bookmark on the title paragraph so TOC hyperlinks land here
+    _add_bookmark(ttl._p, f'chapter_{num}', num)
 
     doc.add_paragraph()
 
@@ -782,17 +797,123 @@ CH_TITLES = {
 PARTS = {1:'Part I: Python Foundations', 6:'Part II: Intermediate Python',
          13:'Part III: Advanced Topics', 17:'Part IV: Web, Data & Machine Learning'}
 
+def _add_toc_entry(doc, n, title):
+    """
+    Add one hyperlinked TOC line:
+      Chapter N  —  Title .......... [PAGEREF]
+    The chapter title is wrapped in a w:hyperlink w:anchor pointing to the
+    bookmark stamped on the chapter banner.  A dot-leader right tab stop
+    precedes the PAGEREF field so page numbers align at the right margin.
+    """
+    ep = doc.add_paragraph()
+    ep.paragraph_format.space_before = Pt(2)
+    ep.paragraph_format.space_after  = Pt(4)
+
+    # ── Dot-leader tab stop at right margin (9360 twips = 6.5 in) ─────────────
+    pPr   = ep._p.get_or_add_pPr()
+    tabs  = OxmlElement('w:tabs')
+    tab   = OxmlElement('w:tab')
+    tab.set(qn('w:val'),    'right')
+    tab.set(qn('w:pos'),    '9360')
+    tab.set(qn('w:leader'), 'dot')
+    tabs.append(tab)
+    existing = pPr.find(qn('w:tabs'))
+    if existing is not None:
+        pPr.remove(existing)
+    pPr.append(tabs)
+
+    # ── Hyperlink element (internal anchor) ────────────────────────────────────
+    hl = OxmlElement('w:hyperlink')
+    hl.set(qn('w:anchor'), f'chapter_{n}')
+    hl.set(qn('w:history'), '1')
+
+    hl_rPr = OxmlElement('w:rPr')
+    hl_rStyle = OxmlElement('w:rStyle')
+    hl_rStyle.set(qn('w:val'), 'Hyperlink')
+    hl_rPr.append(hl_rStyle)
+    hl_color = OxmlElement('w:color')
+    hl_color.set(qn('w:val'), '%02X%02X%02X' % _NAVY)
+    hl_rPr.append(hl_color)
+    hl_font = OxmlElement('w:rFonts')
+    hl_font.set(qn('w:ascii'), 'Times New Roman')
+    hl_font.set(qn('w:hAnsi'), 'Times New Roman')
+    hl_rPr.append(hl_font)
+    hl_sz = OxmlElement('w:sz')
+    hl_sz.set(qn('w:val'), '22')   # 11 pt
+    hl_rPr.append(hl_sz)
+    hl_noUnderline = OxmlElement('w:u')
+    hl_noUnderline.set(qn('w:val'), 'none')
+    hl_rPr.append(hl_noUnderline)
+
+    hl_run = OxmlElement('w:r')
+    hl_run.append(hl_rPr)
+    hl_t = OxmlElement('w:t')
+    hl_t.set(qn('xml:space'), 'preserve')
+    hl_t.text = f'Chapter {n}\u2002\u2014\u2002{title}'
+    hl_run.append(hl_t)
+    hl.append(hl_run)
+    ep._p.append(hl)
+
+    # ── Tab run (triggers the dot-leader) ─────────────────────────────────────
+    tab_run = OxmlElement('w:r')
+    tab_rPr = OxmlElement('w:rPr')
+    tab_sz2 = OxmlElement('w:sz'); tab_sz2.set(qn('w:val'), '22')
+    tab_rPr.append(tab_sz2)
+    tab_run.append(tab_rPr)
+    tab_t = OxmlElement('w:tab')
+    tab_run.append(tab_t)
+    ep._p.append(tab_run)
+
+    # ── PAGEREF field: { PAGEREF chapter_N \h } ────────────────────────────────
+    def _fld_run(child, sz_val='22'):
+        r = OxmlElement('w:r')
+        rPr = OxmlElement('w:rPr')
+        sz  = OxmlElement('w:sz'); sz.set(qn('w:val'), sz_val)
+        rPr.append(sz)
+        fn  = OxmlElement('w:rFonts')
+        fn.set(qn('w:ascii'), 'Times New Roman')
+        fn.set(qn('w:hAnsi'), 'Times New Roman')
+        rPr.append(fn)
+        r.append(rPr)
+        r.append(child)
+        return r
+
+    begin = OxmlElement('w:fldChar'); begin.set(qn('w:fldCharType'), 'begin')
+    ep._p.append(_fld_run(begin))
+
+    instr = OxmlElement('w:instrText')
+    instr.set(qn('xml:space'), 'preserve')
+    instr.text = f' PAGEREF chapter_{n} \\h '
+    ep._p.append(_fld_run(instr))
+
+    sep = OxmlElement('w:fldChar'); sep.set(qn('w:fldCharType'), 'separate')
+    ep._p.append(_fld_run(sep))
+
+    # Placeholder display value (updated by Word on open/print)
+    val_r = OxmlElement('w:r')
+    val_rPr = OxmlElement('w:rPr')
+    val_sz = OxmlElement('w:sz'); val_sz.set(qn('w:val'), '22')
+    val_rPr.append(val_sz)
+    val_r.append(val_rPr)
+    val_t = OxmlElement('w:t'); val_t.text = '1'
+    val_r.append(val_t)
+    ep._p.append(val_r)
+
+    end = OxmlElement('w:fldChar'); end.set(qn('w:fldCharType'), 'end')
+    ep._p.append(_fld_run(end))
+
+
 for n in range(1, 26):
     if n in PARTS:
         pp = doc.add_paragraph()
-        pp.paragraph_format.space_before = Pt(8)
-        r = pp.add_run(PARTS[n])
-        r.bold = True; r.font.size = Pt(10)
+        pp.paragraph_format.space_before = Pt(10)
+        pp.paragraph_format.space_after  = Pt(2)
+        r = pp.add_run(PARTS[n].upper())
+        r.bold = True; r.font.size = Pt(9)
         r.font.color.rgb = _rgb(*_GOLD); r.font.name = 'Calibri'
+        set_para_border(pp, 'bottom', 'c9a84c', '4', '2')
     title = ch_data[n]['title'] if n in ch_data else CH_TITLES.get(n, f'Chapter {n}')
-    ep = doc.add_paragraph(f'Chapter {n}  —  {title}')
-    ep.runs[0].font.size = Pt(11)
-    ep.runs[0].font.name = 'Times New Roman'
+    _add_toc_entry(doc, n, title)
 
 doc.add_page_break()
 
